@@ -58,15 +58,60 @@ function update_book() {
   echo "Book is updated!"
 }
 
+function delete_book() {
+  read -p "Enter book id: " id
+  # Delete the book
+  sed -i '' -e "/^$id/d" books.txt
+  echo "Book is deleted!"
+}
+
 function add_quote() {
-  echo "Adding quote..."
-  # echo "$2,$3,$4" >> quotes.csv
-  # echo "Quote is added!"
+  read -p "Enter book id: " book_id
+  read -p "Enter quote: " quote
+
+  # Generate an id
+  id=$(cat quotes.txt | wc -l | sed -e 's/^[ \t]*//' -e 's/[ \t]*$//')
+  echo "$id|$book_id|$quote" >> quotes.txt
+
+  echo "Quote is added!"
 }
 
 function list_quotes() {
-  echo "Listing quotes..."
-  cat quotes.csv
+  column -s '|' -t quotes.txt 
+}
+
+function search_quotes() {
+  read -p "Enter search: " query
+
+  # Echo the header and format it using column
+  echo "Id|BookId|Quote" | column -s '|' -t
+
+  # Filter quotes by quote and format the output
+  grep -i "$query" quotes.txt | column -s '|' -t 
+}
+
+function update_quote() {
+  read -p "Enter quote id: " id
+  read -p "Enter book id: " book_id
+  read -p "Enter quote: " quote
+
+  # Update the quote
+  # Find line number of the quote id
+  awk -v id=$id -F '|' '$1 == id { print NR; exit}' quotes.txt | xargs -I {} sed -i '' -e "{}s/.*/$id|$book_id|$quote/" quotes.txt
+  echo "Quote is updated!"
+}
+
+function delete_quote() {
+  read -p "Enter quote id: " id
+  # Delete the quote
+  sed -i '' -e "/^$id/d" quotes.txt
+  echo "Quote is deleted!"
+}
+
+function get_quotes_by_book() {
+  read -p "Enter book id: " book_id
+  echo "Id|BookId|Quote" | column -s '|' -t
+  awk -F '|' -v book_id=$book_id '$2 == book_id' quotes.txt | column -s '|' -t
 }
 
 function help() {
@@ -117,14 +162,17 @@ function main() {
     "list_quotes")
       list_quotes
       ;;
+    "get_quotes_by_book")
+      get_quotes_by_book 
+      ;;
     "search_quotes")
-      search_quotes "${@:2}"
+      search_quotes 
       ;;
     "update_quote")
-      update_quote "${@:2}"
+      update_quote 
       ;;
     "delete_quote")
-      delete_quote "${@:2}"
+      delete_quote 
       ;;
     *)
       help
