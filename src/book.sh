@@ -53,7 +53,8 @@ function update_book() {
   read -p "Has read? (yes/no): " has_read
 
   # Update the book
-  # sed -i '' -e "/^$id/s/[^|]*/$id|$title|$author|$genre|$has_read/" books.txt
+  # Find line number of the book id
+  awk -v id=$id -F '|' '$1 == id { print NR; exit}' books.txt | xargs -I {} sed -i '' -e "{}s/.*/$id|$title|$author|$genre|$has_read/" books.txt
   echo "Book is updated!"
 }
 
